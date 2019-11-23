@@ -1,0 +1,5 @@
+compile.py
+libOpenCL.so
+libEasyOpenCL.so
+easyOpenCL.o
+test
