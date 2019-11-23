@@ -1,5 +1,7 @@
-compile.py
 libOpenCL.so
 libEasyOpenCL.so
 easyOpenCL.o
-test
+test/easyOpenCL.h
+test/libOpenCL.so
+test/test.elf
+test/libEasyOpenCL.so
