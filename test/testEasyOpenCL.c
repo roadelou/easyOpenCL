@@ -21,8 +21,6 @@ int main(int argc, char const *argv[]) {
   clock_t start, end;
   long int diff;
 
-  start = clock();
-
   printf("%s\n", "Compiling source code");
   easyCL exampleCL = compile("vector_add.cl");
 
@@ -39,40 +37,50 @@ int main(int argc, char const *argv[]) {
 
   float weights[2] = {1.0,3.0};
 
-  random_vector(N,input_a);
-  random_vector(N,input_b);
+  for (size_t i = 0; i < 5; i++) {
+    printf("Iteration %d\n", i);
 
-  printf("%s\n", "Setting buffers");
-  // printf("%s\n", "Setting first input buffer");
-  exampleCL = setBuffer(exampleCL, (void *)input_a, N*sizeof(float), 0, CL_MEM_READ_ONLY);
-  // printf("%s\n", "Setting second input buffer");
-  exampleCL = setBuffer(exampleCL, (void *)input_b, N*sizeof(float), 1, CL_MEM_READ_ONLY);
-  // printf("%s\n", "Setting output buffer");
-  exampleCL = setBuffer(exampleCL, NULL, N*sizeof(float), 2, CL_MEM_WRITE_ONLY);
-  // printf("%s\n", "Setting weigths buffer");
-  exampleCL = setBuffer(exampleCL, weights, 2*sizeof(float), 3, CL_MEM_READ_ONLY);
-  // printf("%s\n", "Setting second output buffer");
-  exampleCL = setBuffer(exampleCL, NULL, N*sizeof(float), 4, CL_MEM_WRITE_ONLY);
+    random_vector(N,input_a);
+    random_vector(N,input_b);
 
-  // checkCL(exampleCL);
+    start = clock();
 
-  printInfo(exampleCL);
+    printf("%s\n", "Setting buffers");
+    // printf("%s\n", "Setting first input buffer");
+    exampleCL = setBuffer(exampleCL, (void *)input_a, N*sizeof(float), 0, CL_MEM_READ_ONLY);
+    // printf("%s\n", "Setting second input buffer");
+    exampleCL = setBuffer(exampleCL, (void *)input_b, N*sizeof(float), 1, CL_MEM_READ_ONLY);
+    // printf("%s\n", "Setting output buffer");
+    exampleCL = setBuffer(exampleCL, NULL, N*sizeof(float), 2, CL_MEM_WRITE_ONLY);
+    // printf("%s\n", "Setting weigths buffer");
+    exampleCL = setBuffer(exampleCL, weights, 2*sizeof(float), 3, CL_MEM_READ_ONLY);
+    // printf("%s\n", "Setting second output buffer");
+    exampleCL = setBuffer(exampleCL, NULL, N*sizeof(float), 4, CL_MEM_WRITE_ONLY);
+
+    // checkCL(exampleCL);
+    // printInfo(exampleCL);
 
 
-  printf("%s\n", "Running kernel");
-  exampleCL = run(exampleCL,N,1);
+    printf("%s\n", "Running kernel");
+    exampleCL = run(exampleCL,N,1);
 
-  printInfo(exampleCL);
+    // printInfo(exampleCL);
 
-  printf("%s\n", "Reading result from kernel");
-  exampleCL = readBuffer(exampleCL, (void *)output, 2);
-  exampleCL = readBuffer(exampleCL, (void *)output2, 4);
+    printf("%s\n", "Reading result from kernel");
+    exampleCL = readBuffer(exampleCL, (void *)output, 2);
+    exampleCL = readBuffer(exampleCL, (void *)output2, 4);
 
-  printInfo(exampleCL);
+    printInfo(exampleCL);
 
-  end = clock();
-  diff = end - start;
-  printf("GPU time : %ld\n", diff);
+    end = clock();
+    diff = end - start;
+    printf("GPU time : %ld\n", diff);
+
+    printf("%s\n\n", "Resetting buffers");
+    exampleCL = resetBuffers(exampleCL);
+
+  }
+
 
   start = clock();
   CPUAdd(N, input_a, input_b, ref_output, weights, ref_output2);

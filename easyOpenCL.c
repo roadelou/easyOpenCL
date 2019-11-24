@@ -55,6 +55,7 @@ static void printCLBuildErrors(cl_program program, cl_device_id device);
 // static int readFile(const char *name, const size_t fileSize, char *fileContent);
 easyCL compile(const char *fileName);
 easyCL setBuffer(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex, int mode);
+easyCL resetBuffers(easyCL);  // Sets all buffers back to 0
 easyCL readBuffer(easyCL ecl, void *cpuBuffer, size_t argIndex);
 easyCL run(easyCL ecl, size_t threadsCount, size_t threadsClusterSize);
 int printInfo(easyCL ecl);
@@ -430,4 +431,16 @@ easyCL compile(const char *fileName) {
   result.error = 0;
 
   return result;
+}
+
+
+// Reseting status and buffers to 0
+easyCL resetBuffers(easyCL ecl) {
+  memset(ecl.buffers,0,ecl.len);
+  memset(ecl.bufferWriteEvents,0,ecl.len);
+  memset(ecl.lenBuffers,0,ecl.len);
+  memset(ecl.active, 0, ecl.len);  // Set all events to not defined.
+  ecl.kernelEventSet = 0;
+  ecl.error = 0;
+  return ecl;
 }

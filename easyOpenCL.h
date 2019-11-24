@@ -44,6 +44,9 @@ extern easyCL setBuffer(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t ar
 // Reads an output buffer from the GPU once the openCL kernel is done running.
 extern easyCL readBuffer(easyCL ecl, void *cpuBuffer, size_t argIndex);
 
+// Sets all buffers back to 0 and prepares the kernel for new execution
+extern easyCL resetBuffers(easyCL);
+
 // Runs the current openCL kernel with the supplied arguments.
 extern easyCL run(easyCL ecl, size_t threadsCount, size_t threadsClusterSize);
 
