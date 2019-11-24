@@ -48,7 +48,7 @@ extern easyCL readBuffer(easyCL ecl, void *cpuBuffer, size_t argIndex);
 extern easyCL resetBuffers(easyCL);
 
 // Runs the current openCL kernel with the supplied arguments.
-extern easyCL run(easyCL ecl, size_t threadsCount, size_t threadsClusterSize);
+extern easyCL run(easyCL ecl, const size_t *threadsCount, const size_t *clusterSize);
 
 // Prints various informations about the current openCL platform and the state of the supplied openCL handle
 extern int printInfo(easyCL ecl);

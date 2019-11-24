@@ -57,7 +57,7 @@ easyCL compile(const char *fileName);
 easyCL setBuffer(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex, int mode);
 easyCL resetBuffers(easyCL);  // Sets all buffers back to 0
 easyCL readBuffer(easyCL ecl, void *cpuBuffer, size_t argIndex);
-easyCL run(easyCL ecl, size_t threadsCount, size_t threadsClusterSize);
+easyCL run(easyCL ecl, const size_t *threadsCount, const size_t *clusterSize);
 int printInfo(easyCL ecl);
 int checkCL(easyCL ecl);
 
@@ -234,7 +234,7 @@ easyCL setBuffer(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex,
 }
 
 
-easyCL run(easyCL ecl, size_t threadsCount, size_t threadsClusterSize) {
+easyCL run(easyCL ecl, const size_t *threadsCount, const size_t *clusterSize) {
   // Gathering all active events
   size_t activeEventsCursor = 0;
   cl_event activeEvents[ecl.len];
@@ -249,7 +249,7 @@ easyCL run(easyCL ecl, size_t threadsCount, size_t threadsClusterSize) {
   // ####################
   // Starting the kernel
   ecl.error = clEnqueueNDRangeKernel(ecl.queue, ecl.kernel, 1, NULL,
-      &threadsCount, &threadsClusterSize, activeEventsCursor, activeEvents, &ecl.kernelEvent);
+      threadsCount, clusterSize, activeEventsCursor, activeEvents, &ecl.kernelEvent);
   checkError(ecl.error, "Failed to launch kernel");
 
   ecl.kernelEventSet = 1;
@@ -402,6 +402,7 @@ easyCL compile(const char *fileName) {
     return result;
   }
 
+  // printf("Source code :\n%s\n", *openclProgram);
   program = clCreateProgramWithSource(context, 1, (const char **) openclProgram, &sourceSize, &result.error);
   checkError(result.error,"Program creation failed");
 
