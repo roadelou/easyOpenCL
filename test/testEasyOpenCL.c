@@ -142,11 +142,11 @@ int main(int argc, char const *argv[]) {
 
     printf("%s\n", "Setting buffers");
     // printf("%s\n", "Setting first input buffer");
-    matrixCL = setBuffer(matrixCL, (void *)input_mat_a, N_mat*sizeof(float), 0, CL_MEM_READ_ONLY);
+    matrixCL = setMap(matrixCL, (void *)input_mat_a, N_mat*sizeof(float), 0, CL_MEM_READ_ONLY);
     // printf("%s\n", "Setting second input buffer");
-    matrixCL = setBuffer(matrixCL, (void *)input_mat_b, N_mat*sizeof(float), 1, CL_MEM_READ_ONLY);
+    matrixCL = setMap(matrixCL, (void *)input_mat_b, N_mat*sizeof(float), 1, CL_MEM_READ_ONLY);
     // printf("%s\n", "Setting output buffer");
-    matrixCL = setBuffer(matrixCL, NULL, N_mat*sizeof(float), 2, CL_MEM_WRITE_ONLY);
+    matrixCL = setMap(matrixCL, NULL, N_mat*sizeof(float), 2, CL_MEM_WRITE_ONLY);
 
     printf("%s\n", "Running kernel");
     matrixCL = run(matrixCL,&N_mat,&clusterSize_mat);
@@ -154,7 +154,7 @@ int main(int argc, char const *argv[]) {
     // printInfo(exampleCL);
 
     printf("%s\n", "Reading result from kernel");
-    matrixCL = readBuffer(matrixCL, (void *)output_mat, 2);
+    matrixCL = readMap(matrixCL, (void *)output_mat, 2);
 
     printInfo(matrixCL);
 

@@ -55,8 +55,10 @@ static void printCLBuildErrors(cl_program program, cl_device_id device);
 // static int readFile(const char *name, const size_t fileSize, char *fileContent);
 easyCL compile(const char *fileName);
 easyCL setBuffer(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex, int mode);
+easyCL setMap(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex, int mode);
 easyCL resetBuffers(easyCL);  // Sets all buffers back to 0
 easyCL readBuffer(easyCL ecl, void *cpuBuffer, size_t argIndex);
+easyCL readMap(easyCL ecl, void *cpuBuffer, size_t argIndex);
 easyCL run(easyCL ecl, const size_t *threadsCount, const size_t *clusterSize);
 int printInfo(easyCL ecl);
 int checkCL(easyCL ecl);
@@ -234,6 +236,48 @@ easyCL setBuffer(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex,
 }
 
 
+
+
+easyCL setMap(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex, int mode) {
+
+  // #########################
+  // Creating GPU buffer
+  ecl.buffers[argIndex] = clCreateBuffer(ecl.context, mode, lenBuffer, NULL, &ecl.error);
+  checkError(ecl.error, "Failed to create GPU buffer");
+
+  ecl.lenBuffers[argIndex] = lenBuffer;
+
+  // cannot declare variables from a case statements, hence I declare the variables here.
+  cl_event shortEvent;
+  void *tempBuffer;
+  // ########################
+  // Setting value of the buffer if needed
+  switch (mode) {
+    case CL_MEM_READ_ONLY:  // falling directly to the second case.
+    case CL_MEM_READ_WRITE:
+      // Creating map buffer
+      tempBuffer = clEnqueueMapBuffer(ecl.queue, ecl.buffers[argIndex], CL_FALSE, CL_MAP_WRITE,
+          0, lenBuffer, 0, NULL, &shortEvent, &ecl.error);
+      checkError(ecl.error, "Failed to map buffer from CPU to GPU");
+      // Copying values from input to buffer
+      memcpy(tempBuffer, cpuBuffer, lenBuffer);
+      // Unmapping buffer before using it from GPU
+      ecl.error = clEnqueueUnmapMemObject(ecl.queue, ecl.buffers[argIndex], tempBuffer, 1, &shortEvent, &ecl.bufferWriteEvents[argIndex]);
+      checkError(ecl.error, "Failed to unmap input buffer from GPU");
+      ecl.active[argIndex] = 1;   // Only buffers that are written to have to be awaited, output buffer events aren't even correctly initialized here.
+      break;
+  }
+
+  // #####################
+  // Setting kernel argument
+  ecl.error = clSetKernelArg(ecl.kernel, argIndex, sizeof(cl_mem), &ecl.buffers[argIndex]);
+  checkError(ecl.error, "Failed to set kernel argument");
+
+  return ecl;
+}
+
+
+
 easyCL run(easyCL ecl, const size_t *threadsCount, const size_t *clusterSize) {
   // Gathering all active events
   size_t activeEventsCursor = 0;
@@ -264,6 +308,24 @@ easyCL readBuffer(easyCL ecl, void *cpuBuffer, size_t argIndex) {
   ecl.error = clEnqueueReadBuffer(ecl.queue, ecl.buffers[argIndex], CL_FALSE,
       0, ecl.lenBuffers[argIndex], cpuBuffer, 1, &ecl.kernelEvent, &finishEvent);
   checkError(ecl.error, "Failed to read output from kernel");
+  clWaitForEvents(1,&finishEvent);
+  // Note that readBuffer is always blocking, unlike setBuffer and run.
+
+  return ecl;
+}
+
+
+easyCL readMap(easyCL ecl, void *cpuBuffer, size_t argIndex) {
+  // ####################
+  // Reading the results
+  cl_event finishEvent, shortEvent;
+  void *tempBuffer = clEnqueueMapBuffer(ecl.queue, ecl.buffers[argIndex], CL_FALSE, CL_MAP_READ,
+      0, ecl.lenBuffers[argIndex], 1, &ecl.kernelEvent, &shortEvent, &ecl.error);
+  checkError(ecl.error, "Failed to read output from kernel");
+
+  ecl.error = clEnqueueUnmapMemObject(ecl.queue, ecl.buffers[argIndex], tempBuffer, 1, &shortEvent, &finishEvent);
+  checkError(ecl.error, "Failed to unmap output buffer from GPU");
+  memcpy(cpuBuffer,tempBuffer,ecl.lenBuffers[argIndex]);  // Copying value to output
   clWaitForEvents(1,&finishEvent);
   // Note that readBuffer is always blocking, unlike setBuffer and run.
 

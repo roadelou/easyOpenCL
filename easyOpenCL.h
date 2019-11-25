@@ -44,6 +44,12 @@ extern easyCL setBuffer(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t ar
 // Reads an output buffer from the GPU once the openCL kernel is done running.
 extern easyCL readBuffer(easyCL ecl, void *cpuBuffer, size_t argIndex);
 
+// Sets an input or output buffer for the compiled openCL program with the map strategy
+extern easyCL setMap(easyCL ecl, void *cpuBuffer, size_t lenBuffer, size_t argIndex, int mode);
+
+// Reads an output buffer with the map strategy from the GPU once the openCL kernel is done running.
+extern easyCL readMap(easyCL ecl, void *cpuBuffer, size_t argIndex);
+
 // Sets all buffers back to 0 and prepares the kernel for new execution
 extern easyCL resetBuffers(easyCL);
 
